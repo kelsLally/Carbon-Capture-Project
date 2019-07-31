@@ -159,7 +159,9 @@ public class MultiEdge implements Edge {
     
     @Override
     public double getResidualCapacity(int level){
-        if(flow >= 0){
+        if (level == -1){
+            return 0;
+        } else if(flow >= 0){
             return capacities[level] - flow;
         }
         return - capacities[level] - flow;
