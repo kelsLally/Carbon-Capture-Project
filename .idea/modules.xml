@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CarbonCaptureProjectv4.iml" filepath="$PROJECT_DIR$/CarbonCaptureProjectv4.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Carbon-Capture-Project.iml" filepath="$PROJECT_DIR$/Carbon-Capture-Project.iml" />
     </modules>
   </component>
 </project>

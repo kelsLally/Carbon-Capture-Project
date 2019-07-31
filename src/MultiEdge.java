@@ -4,8 +4,6 @@
  * and open the template in the editor.
  */
 
-import java.util.Arrays;
-
 /**
  *
  * @author sauerberg

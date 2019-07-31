@@ -101,7 +101,7 @@ public class Cplex_Solver {
         }
     }
 
-    public ILPEdge [] solvedILPEdges () {
+    public ILPEdge[] solvedILPEdges () {
         return graph.getILPEdge_array();
     }
 }

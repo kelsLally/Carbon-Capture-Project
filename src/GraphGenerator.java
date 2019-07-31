@@ -8,8 +8,8 @@ public class GraphGenerator {
     private double prop_sinks;
     private Node[] nodes;
     private HashSet <Line> lines;
-    private MultiEdge [] multiEdgeArray;
-    private MultiEdge[][] matrix;
+    private MultiEdge[] multiEdgeArray;
+    //private MultiEdge[][] matrix;
 
     private static double[] CAP = new double[]{50, 200, 500, 1000};
     private static double[] FC = new double[]{75, 150, 300, 550};
@@ -25,14 +25,15 @@ public class GraphGenerator {
         nodes = generateNodeArray(node_count, X_MAX, Y_MAX);
 
         // generate the virtual edges between super source/ sink and sources/ sinks
-        matrix = new MultiEdge[node_count][node_count];
+        //matrix = new MultiEdge[node_count][node_count];
+        ArrayList <MultiEdge> virtualEdges = new ArrayList<>();
         for (int i = 0; i < nodes.length; i ++) {
             switch (nodes[i].getNode_type()) {
                 case SOURCE:
-                    matrix[0][i] = generateVirtualEdge(0, i);
+                    virtualEdges.add(generateVirtualEdge(0, i));
                     break;
                 case SINK:
-                    matrix[i][nodes.length - 1] = generateVirtualEdge(i, nodes.length - 1);
+                    virtualEdges.add(generateVirtualEdge(i, nodes.length - 1));
                     break;
             }
         }
@@ -63,64 +64,41 @@ public class GraphGenerator {
             }
         }
 
-        Line [] lineArray = new Line [lines.size()];
+
+
+        Line[] lineArray = new Line[lines.size()];
         lines.toArray(lineArray);
 
-        multiEdgeArray = new MultiEdge[lines.size()];
-        for (int i = 0; i < multiEdgeArray.length; i ++) {
+        multiEdgeArray = new MultiEdge[lines.size()+ virtualEdges.size()];
+        for (int i = 0; i < lineArray.length; i ++) {
             multiEdgeArray[i] = generateMultiEdge(lineArray[i].getStart(), lineArray[i].getEnd(), lineArray[i].getLength());
+        }
+        for (int i = lineArray.length; i < multiEdgeArray.length; i ++) {
+            multiEdgeArray[i] = virtualEdges.get(i - lineArray.length);
         }
 
 
-//        for (Line ln : lines) {
-//            matrix[ln.getStart()][ln.getEnd()] = generateMultiEdge(ln.getStart(), ln.getEnd(), ln.getLength());
-//        }
 
-        // optional code to print your final matrix
-//        System.out.println("matrix: ");
-//        for (int a = 0; a < node_count; a ++) {
-//            System.out.print(a + ": ");
-//            for (int b = 0; b < node_count; b ++){
-//                if (matrix[a][b] != null) {
-//                    System.out.print(matrix[a][b].getEnd() + ", ");
-//                }
-//            }
-//            System.out.println();
-//        }
-//        System.out.println();
     }
 
     public Flow_Network getFlowNetwork(){
-
-//        MultiEdge [][] matrix_copy = new MultiEdge[matrix.length][matrix.length];
-//        for (int i = 0; i < matrix.length; i ++) {
-//            for (int j = 0; j < matrix[i].length; j ++ ){
-//                if (matrix[i][j] != null){
-//                    MultiEdge multiEdge = new MultiEdge(matrix[i][j].getStart(), matrix[i][j].getEnd(), matrix[i][j].getCapacities(), matrix[i][j].getFixed_costs(), matrix[i][j].getVariable_costs());
-//                    matrix_copy[i][j] = multiEdge;
-//                }
-//            }
-//        }
-
-
-        return new Flow_Network(node_count, multiEdgeArray);
+        MultiEdge[] copy = new MultiEdge[multiEdgeArray.length];
+        for (int i = 0; i < multiEdgeArray.length; i++) {
+            copy[i] = new MultiEdge(multiEdgeArray[i].getStart(), multiEdgeArray[i].getEnd(), multiEdgeArray[i].getCapacities(), multiEdgeArray[i].getFixed_costs(), multiEdgeArray[i].getVariable_costs());
+        }
+        return new Flow_Network(node_count, copy);
     }
 
     public ILPEdge[] getILPEdgeList() {
 
         ArrayList<ILPEdge> arrayListEdges = new ArrayList<>();
-        for (int i = 0; i < matrix.length; i++){
-            for (int j = i+1; j < matrix.length; j++) {
-                if (matrix[i][j] != null) {
-                    MultiEdge e = matrix[i][j];
-                    for (int k = 0; k < e.getCapacities().length; k++) {
-                        ILPEdge ilpEdge = new ILPEdge(e.getStart(), e.getEnd(), e.getCapacities()[k], e.getFixed_costs()[k], e.getVariable_costs()[k]);
-                        arrayListEdges.add(ilpEdge);
-                    }
-                }
+        for (int i = 0; i < multiEdgeArray.length; i++) {
+            MultiEdge e = multiEdgeArray [i];
+            for (int k = 0; k < e.getCapacities().length; k++) {
+                ILPEdge ilpEdge = new ILPEdge(e.getStart(), e.getEnd(), e.getCapacities()[k], e.getFixed_costs()[k], e.getVariable_costs()[k]);
+                arrayListEdges.add(ilpEdge);
             }
         }
-
         ILPEdge[] edges = new ILPEdge[arrayListEdges.size()];
 
         for (int i = 0; i < edges.length; i ++) {

@@ -1,6 +1,6 @@
 public class CarbonCaptureProjectv4 {
     public static void main (String[] args) {
-        int node_count = 20;
+        int node_count = 30;
         double proportion_of_sources = 0.4;
         double proportion_of_sinks = 0.4;
         double demand = 150;
