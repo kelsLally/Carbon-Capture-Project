@@ -53,10 +53,8 @@ public class Reverse_MultiEdge implements Edge {
     public double getResidualCapacity(int level) {
         if (level == -1) {
             return 0;
-        } else if (edge.getFlow() >= 0) {
-            return edge.getFlow() + edge.getCapacities()[level];
         }
-        return edge.getCapacities()[level] + edge.getFlow();
+        return edge.getFlow() + edge.getCapacities()[level];
     }
 
     public double getResidualCapacity() {

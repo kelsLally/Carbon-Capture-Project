@@ -6,18 +6,26 @@ public class CarbonCaptureProjectv4 {
         double demand = 150;
 
         GraphGenerator graphGenerator = new GraphGenerator(node_count, proportion_of_sources, proportion_of_sinks);
-        Cplex_Solver cplex_solver = new Cplex_Solver(new ILPGraph(0, node_count - 1, graphGenerator.getILPEdgeList(), node_count), demand);
-        CSVEdgeWriter csvEdgeWriter = new CSVEdgeWriter("C:\\Users\\book_\\Documents\\Summer2019\\graphVisualizer\\edge_file_solution_tester.csv", cplex_solver.solvedILPEdges());
+        //Cplex_Solver cplex_solver = new Cplex_Solver(new ILPGraph(0, node_count - 1, graphGenerator.getILPEdgeList(), node_count), demand);
+        //CSVEdgeWriter csvEdgeWriter = new CSVEdgeWriter("C:\\Users\\book_\\Documents\\Summer2019\\graphVisualizer\\edge_file_solution_tester.csv", cplex_solver.solvedILPEdges());
 
         Flow_Network flow_network = graphGenerator.getFlowNetwork();
 
-        System.out.println();
-        System.out.println();
-        flow_network.solveCheapestPathHeuristic(demand);
-        System.out.println("solve cheapest path heuristic:");
-        System.out.println(flow_network.getFlow() + " cost: " + flow_network.getCost());
-        flow_network.print_flow_edges();
+        for (int i = 0; i < 1000000; i++) {
+            System.out.println();
+            System.out.println();
+            flow_network.solveCheapestPathHeuristic(demand);
+            System.out.println("\n Solved:");
+            System.out.println(flow_network.getFlow() + " cost: " + flow_network.getCost());
+            flow_network.print_flow_edges();
 
+            graphGenerator = new GraphGenerator(node_count, proportion_of_sources, proportion_of_sinks);
+            flow_network = graphGenerator.getFlowNetwork();
+
+        }
+
+
+        /*
         flow_network = graphGenerator.getFlowNetwork();
         System.out.println(flow_network.getFlow());
 
@@ -35,6 +43,7 @@ public class CarbonCaptureProjectv4 {
         System.out.println("solve Sean heuristic:");
         System.out.println(flow_network.getFlow() + " cost: " + flow_network.getCost());
         flow_network.print_flow_edges();
+         */
 
     }
 }

@@ -59,7 +59,7 @@ public class Flow_Network {
                 }
             }
         }
-        return cost/2;
+        return cost / 2;
     }
 
     public void augmentAlongPath(ArrayList<Integer> path, double amount) {
@@ -85,7 +85,7 @@ public class Flow_Network {
         cost[0] = 0;
 
         // repeatedly relax # edges allowed
-        for (int i = 0; i < n-1; i++) {
+        for (int i = 0; i < n - 1; i++) {
             for (Edge[] row : matrix) {
                 for (Edge e : row) {
                     if (e != null && cost[e.getEnd()] > cost[e.getStart()] + e.getFixedCostToIncreaseFlow()) {
@@ -112,7 +112,7 @@ public class Flow_Network {
         path.add(n - 1);
         while (path.get(path.size() - 1) != 0) {
             if (pred[path.get(path.size() - 1)] == -1) {
-                throw new IllegalArgumentException("Error in Bellman Ford");
+                return null; // max flow of network is less than demand
             }
             Edge e = matrix[pred[path.get(path.size() - 1)]][path.get(path.size() - 1)];
             if (e.getFixedCostToIncreaseFlow() == Double.MAX_VALUE) {
@@ -120,7 +120,14 @@ public class Flow_Network {
             }
             capacity = Math.min(capacity, (e.getResidualCapacity() == 0)
                     ? e.getResidualCapacity(e.getLevel() + 1) : e.getResidualCapacity());
+            if (capacity < 0){
+                boolean resCapIs0 = (e.getResidualCapacity() == 0);
+                double cap1 = e.getResidualCapacity(e.getLevel() + 1);
+                double cap0 = e.getResidualCapacity();
+                throw new IllegalArgumentException("Path has negative capacity");
+            }
             path.add(e.getStart());
+
         }
         Collections.reverse(path);
 
@@ -128,6 +135,15 @@ public class Flow_Network {
         for (int i = 0; i < path.size() - 1; i++) {
             total_cost += matrix[path.get(i)][path.get(i + 1)].getCost(capacity);
         }
+        /*
+        if (total_cost < 0) {
+            double[] costs = new double[path.size() - 1];
+            for (int i = 0; i < costs.length; i++) {
+                costs[i] = matrix[path.get(i)][path.get(i + 1)].getCost(capacity);
+            }
+            throw new IllegalArgumentException("Path has negative cost");
+        }
+        */
 
         return new PathCostFlow(path, total_cost, capacity);
     }
@@ -150,7 +166,7 @@ public class Flow_Network {
         cost[0] = 0;
 
         // repeatedly relax # edges allowed
-        for (int i = 0; i < n-1; i++) {
+        for (int i = 0; i < n - 1; i++) {
             for (Edge[] row : matrix) {
                 for (Edge e : row) {
                     if (e != null && cost[e.getEnd()] > cost[e.getStart()] + e.getCost(amount)) {
@@ -178,7 +194,7 @@ public class Flow_Network {
         // compute the path, cost, and capacity from the arrays
         double total_cost = 0;
         ArrayList<Integer> path = new ArrayList<Integer>();
-        path.add(n-1);
+        path.add(n - 1);
         while (path.get(path.size() - 1) != 0) {
             if (pred[path.get(path.size() - 1)] == -1) {
                 throw new IllegalArgumentException("Error in Bellman Ford");
@@ -212,7 +228,7 @@ public class Flow_Network {
             System.out.println("Cheapest Path =" + cheapest.getPath());
             System.out.println("With Flow: " + cheapest.getFlow());
             System.out.println("With Cost: " + cheapest.getCost());
-            augmentAlongPath(cheapest.getPath(), Math.min(cheapest.getFlow(), demand- getFlow()));
+            augmentAlongPath(cheapest.getPath(), Math.min(cheapest.getFlow(), demand - getFlow()));
         }
         return true;
     }
@@ -244,7 +260,7 @@ public class Flow_Network {
             if (cheapest.getFlow() == 0) {
                 return false; // already at max flow
             }
-            augmentAlongPath(cheapest.getPath(), Math.min(cheapest.getFlow(), demand- getFlow()));
+            augmentAlongPath(cheapest.getPath(), Math.min(cheapest.getFlow(), demand - getFlow()));
         }
         return true;
     }
@@ -302,14 +318,50 @@ public class Flow_Network {
 
     }
 
-    public void print_flow_edges(){
-        for(int i = 0; i<n; i++){
-            for (int j = 0; j<n; j++){
-                if (matrix[i][j] != null && matrix[i][j].getFlow() > 0){
+    public void print_flow_edges() {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (matrix[i][j] != null && matrix[i][j].getFlow() > 0) {
                     System.out.println(matrix[i][j]);
                 }
             }
         }
+    }
+
+    public boolean isValid(){
+        for (Edge[] row : matrix){
+            for (Edge e: row){
+                if (e != null && !e.isValid()){
+                    return false;
+                }
+            }
+        }
+        for (int i =1; i < n-2; i++){
+            if (flowIn(i) != flowOut(i)){
+                return false;
+            }
+        }
+        return (flowOut(0) - flowIn(0)) == (flowIn(n-1) - flowOut(n-1));
+    }
+
+    private double flowIn(int node){
+        double flow = 0;
+        for (int i = 0; i < n; i++){
+            if (matrix[i][node] != null){
+                flow += matrix[i][node].getFlow();
+            }
+        }
+        return flow;
+    }
+
+    private double flowOut(int node){
+        double flow = 0;
+        for (int i = 0; i < n; i++){
+            if (matrix[node][i] != null){
+                flow += matrix[node][i].getFlow();
+            }
+        }
+        return flow;
     }
 
 }

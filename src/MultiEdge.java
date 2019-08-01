@@ -5,7 +5,6 @@
  */
 
 /**
- *
  * @author sauerberg
  */
 public class MultiEdge implements Edge {
@@ -108,7 +107,7 @@ public class MultiEdge implements Edge {
 
     @Override
     public double getCurrentCost() {
-        if (level == -1){
+        if (level == -1) {
             return 0;
         }
         return fixed_costs[level] + variable_costs[level] * Math.abs(flow);
@@ -117,13 +116,18 @@ public class MultiEdge implements Edge {
     @Override
     public double getCost(double additional_flow) {
         int newLevel = findMinLevel(additional_flow + flow);
-        return fixed_costs[newLevel] + variable_costs[newLevel] 
+        if (newLevel == -1) {
+            return 0;
+        } else if (newLevel == -2) {
+            return Double.MAX_VALUE;
+        }
+        return fixed_costs[newLevel] + variable_costs[newLevel]
                 * Math.abs(additional_flow + flow) - getCurrentCost();
     }
 
     @Override
     public boolean setFlow(double amount) {
-        if (findMinLevel(amount) == -1) {
+        if (findMinLevel(amount) == -1 || findMinLevel(amount) == -2) {
             return false;
         }
         level = findMinLevel(amount);
@@ -133,21 +137,24 @@ public class MultiEdge implements Edge {
 
     @Override
     public boolean augmentFlow(double amount) {
-        if (findMinLevel(flow + amount) == -1) {
+        if (findMinLevel(flow + amount) == -2) {
             return false;
         }
-        level = findMinLevel(amount);
+        level = findMinLevel(flow + amount);
         flow += amount;
         return true;
     }
 
     @Override
     public boolean isValid() {
+        if (level == -1){
+            return flow == 0;
+        }
         return capacities[level] >= Math.abs(flow);
     }
 
     private int findMinLevel(double flow) {
-        if (flow == 0){
+        if (flow == 0) {
             return -1;
         }
         for (int i = 0; i < capacities.length; i++) {
@@ -155,39 +162,37 @@ public class MultiEdge implements Edge {
                 return i;
             }
         }
-        return -1;
+        return -2;
     }
-    
+
     @Override
-    public int getLevel(){
+    public int getLevel() {
         return level;
     }
-    
+
     @Override
-    public double getResidualCapacity(int level){
-        if (level == -1){
+    public double getResidualCapacity(int level) {
+        if (level == -1 || level == -2) {
             return 0;
-        } else if(flow >= 0){
-            return capacities[level] - flow;
         }
-        return - capacities[level] - flow;
+        return capacities[level] - flow;
     }
-    
+
     @Override
-    public double getResidualCapacity(){
+    public double getResidualCapacity() {
         return getResidualCapacity(level);
     }
 
     @Override
     public double getFixedCostToIncreaseFlow() {
-        if (getResidualCapacity() > 0){
+        if (getResidualCapacity() > 0) {
             return 0;
-        } else if (level == fixed_costs.length -1){
+        } else if (level == fixed_costs.length - 1) {
             return Double.MAX_VALUE;
-        } else if (level == -1){
+        } else if (level == -1) {
             return fixed_costs[0];
         }
-        return fixed_costs[level+1] - fixed_costs[level];
+        return fixed_costs[level + 1] - fixed_costs[level];
     }
 
     public double[] getCapacities() {
