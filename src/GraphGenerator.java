@@ -153,10 +153,11 @@ public class GraphGenerator {
         double [] capacities = new double[CAP.length];
         double [] fixed = new double[CAP.length];
         double [] variable = new double[CAP.length];
+        double terrain_difficulty = rand.nextDouble() + .5;
         for (int i = 0; i < CAP.length; i++){
             capacities[i] = CAP[i];
-            fixed[i] = FC[i] * length * (rand.nextDouble()+.5);
-            variable[i] = VC[i] * (rand.nextDouble()+.5);
+            fixed[i] = FC[i] * length * terrain_difficulty;
+            variable[i] = VC[i] * length;
         }
         return new MultiEdge(start, end, capacities, fixed ,variable);
     }
