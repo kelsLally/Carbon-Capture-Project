@@ -32,7 +32,7 @@ public class MultiEdge implements Edge {
             throw new IllegalArgumentException("Edges must have non-negative start and end indices.");
         }
         if (capacities.length != fixed_costs.length || capacities.length != variable_costs.length) {
-            throw new IllegalArgumentException("Capcity and cost arrays must have same length.");
+            throw new IllegalArgumentException("Capacity and cost arrays must have same length.");
         }
         for (int i = 0; i < capacities.length; i++) {
             if (capacities[i] < 0) {
@@ -50,7 +50,7 @@ public class MultiEdge implements Edge {
         this.capacities = capacities;
         this.fixed_costs = fixed_costs;
         this.variable_costs = variable_costs;
-        this.level = 0;
+        this.level = -1;
         this.flow = 0;
 
     }
@@ -108,6 +108,9 @@ public class MultiEdge implements Edge {
 
     @Override
     public double getCurrentCost() {
+        if (level == -1){
+            return 0;
+        }
         return fixed_costs[level] + variable_costs[level] * Math.abs(flow);
     }
 
@@ -115,7 +118,7 @@ public class MultiEdge implements Edge {
     public double getCost(double additional_flow) {
         int newLevel = findMinLevel(additional_flow + flow);
         return fixed_costs[newLevel] + variable_costs[newLevel] 
-                * (Math.abs(additional_flow + flow) - getCurrentCost());
+                * Math.abs(additional_flow + flow) - getCurrentCost();
     }
 
     @Override
@@ -144,6 +147,9 @@ public class MultiEdge implements Edge {
     }
 
     private int findMinLevel(double flow) {
+        if (flow == 0){
+            return -1;
+        }
         for (int i = 0; i < capacities.length; i++) {
             if (capacities[i] >= Math.abs(flow)) {
                 return i;
@@ -178,6 +184,8 @@ public class MultiEdge implements Edge {
             return 0;
         } else if (level == fixed_costs.length -1){
             return Double.MAX_VALUE;
+        } else if (level == -1){
+            return fixed_costs[0];
         }
         return fixed_costs[level+1] - fixed_costs[level];
     }

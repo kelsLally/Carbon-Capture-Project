@@ -5,12 +5,12 @@
  */
 
 /**
- *
  * @author sauerberg
  */
 public class Reverse_MultiEdge implements Edge {
     MultiEdge edge;
-    public Reverse_MultiEdge(MultiEdge edge){
+
+    public Reverse_MultiEdge(MultiEdge edge) {
         this.edge = edge;
     }
 
@@ -49,24 +49,34 @@ public class Reverse_MultiEdge implements Edge {
     public boolean isValid() {
         return edge.isValid();
     }
-    
-    public double getResidualCapacity(int level){
-        return -edge.getResidualCapacity(level);
+
+    public double getResidualCapacity(int level) {
+        if (level == -1) {
+            return 0;
+        } else if (edge.getFlow() >= 0) {
+            return edge.getFlow() + edge.getCapacities()[level];
+        }
+        return edge.getCapacities()[level] + edge.getFlow();
     }
-    
-    public double getResidualCapacity(){
+
+    public double getResidualCapacity() {
         return getResidualCapacity(edge.getLevel());
     }
-    
-    public int getLevel(){
+
+    public int getLevel() {
         return edge.level;
     }
 
     public double getFixedCostToIncreaseFlow() {
         return edge.getFixedCostToIncreaseFlow();
     }
-    
-    
 
-    
+    @Override
+    public String toString() {
+        return "Reverse_MultiEdge{" +
+                "start=" + getStart() +
+                ", end=" + getEnd() +
+                ", flow=" + getFlow() +
+                '}';
+    }
 }
