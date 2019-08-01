@@ -85,7 +85,7 @@ public class Flow_Network {
         cost[0] = 0;
 
         // repeatedly relax # edges allowed
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n-1; i++) {
             for (Edge[] row : matrix) {
                 for (Edge e : row) {
                     if (e != null && cost[e.getEnd()] > cost[e.getStart()] + e.getFixedCostToIncreaseFlow()) {
@@ -150,7 +150,7 @@ public class Flow_Network {
         cost[0] = 0;
 
         // repeatedly relax # edges allowed
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n-1; i++) {
             for (Edge[] row : matrix) {
                 for (Edge e : row) {
                     if (e != null && cost[e.getEnd()] > cost[e.getStart()] + e.getCost(amount)) {
@@ -166,6 +166,7 @@ public class Flow_Network {
             for (Edge e : row) {
                 if (e != null && cost[e.getEnd()]
                         > cost[e.getStart()] + e.getCost(amount)) {
+
                     // todo: if the graph really has a negative cycle
                     // we should return it instead of throwing an exception
                     throw new IllegalArgumentException(
@@ -177,8 +178,11 @@ public class Flow_Network {
         // compute the path, cost, and capacity from the arrays
         double total_cost = 0;
         ArrayList<Integer> path = new ArrayList<Integer>();
-        path.add(n);
+        path.add(n-1);
         while (path.get(path.size() - 1) != 0) {
+            if (pred[path.get(path.size() - 1)] == -1) {
+                throw new IllegalArgumentException("Error in Bellman Ford");
+            }
             Edge e = matrix[pred[path.get(path.size() - 1)]][path.get(path.size() - 1)];
             if (e.getCost(amount) == Double.MAX_VALUE) {
                 return null; // no path exists
@@ -204,9 +208,11 @@ public class Flow_Network {
             if (cheapest == null) {
                 return false; // max flow of network is less than demand
             }
-            System.out.println("Flow = " + getFlow());
-            System.out.println("Cheapest flow: " + cheapest.getFlow());
-            augmentAlongPath(cheapest.getPath(), cheapest.getFlow());
+            System.out.println("Current Flow = " + getFlow());
+            System.out.println("Cheapest Path =" + cheapest.getPath());
+            System.out.println("With Flow: " + cheapest.getFlow());
+            System.out.println("With Cost: " + cheapest.getCost());
+            augmentAlongPath(cheapest.getPath(), Math.min(cheapest.getFlow(), demand- getFlow()));
         }
         return true;
     }
@@ -238,7 +244,7 @@ public class Flow_Network {
             if (cheapest.getFlow() == 0) {
                 return false; // already at max flow
             }
-            augmentAlongPath(cheapest.getPath(), cheapest.getFlow());
+            augmentAlongPath(cheapest.getPath(), Math.min(cheapest.getFlow(), demand- getFlow()));
         }
         return true;
     }
@@ -299,7 +305,7 @@ public class Flow_Network {
     public void print_flow_edges(){
         for(int i = 0; i<n; i++){
             for (int j = 0; j<n; j++){
-                if (matrix[i][j] != null && matrix[i][j].getFlow() != 0){
+                if (matrix[i][j] != null && matrix[i][j].getFlow() > 0){
                     System.out.println(matrix[i][j]);
                 }
             }
