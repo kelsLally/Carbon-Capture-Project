@@ -37,7 +37,7 @@ public class GraphGenerator {
                     break;
             }
         }
-
+        // another change to test commits
         // find the distances between all nodes
         double [][] distance_matrix = new double [node_count - 2][node_count - 2];
         for (int i = 1; i < node_count - 1; i ++) {
@@ -76,9 +76,6 @@ public class GraphGenerator {
         for (int i = lineArray.length; i < multiEdgeArray.length; i ++) {
             multiEdgeArray[i] = virtualEdges.get(i - lineArray.length);
         }
-
-
-
     }
 
     public Flow_Network getFlowNetwork(){
@@ -99,10 +96,13 @@ public class GraphGenerator {
                 arrayListEdges.add(ilpEdge);
             }
         }
-        ILPEdge[] edges = new ILPEdge[arrayListEdges.size()];
+        ILPEdge[] edges = new ILPEdge[arrayListEdges.size()*2];
 
-        for (int i = 0; i < edges.length; i ++) {
+        for (int i = 0; i < arrayListEdges.size(); i ++) {
             edges[i] = arrayListEdges.get(i);
+        }
+        for (int i = arrayListEdges.size(); i < edges.length; i++) {
+            edges[i] = new ILPEdge(arrayListEdges.get(i - arrayListEdges.size()).getEnd(), arrayListEdges.get(i - arrayListEdges.size()).getStart(), arrayListEdges.get(i - arrayListEdges.size()).getCapacity(), arrayListEdges.get(i - arrayListEdges.size()).getFixed_cost(), arrayListEdges.get(i - arrayListEdges.size()).getVariable_cost());
         }
         CSVEdgeWriter csvEdgeWriter = new CSVEdgeWriter("C:\\Users\\book_\\Documents\\Summer2019\\MSUResearch\\graphVisualizer2_0\\edge_file_tester.csv", edges);
         return edges;
