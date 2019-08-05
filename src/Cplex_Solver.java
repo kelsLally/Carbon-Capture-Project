@@ -7,6 +7,7 @@ import ilog.cplex.IloCplex;
 public class Cplex_Solver {
     private ILPGraph graph;
     private double demand;
+    private double final_cost;
 
     public Cplex_Solver (ILPGraph graph, double demand) {
         this.graph = graph;
@@ -43,6 +44,10 @@ public class Cplex_Solver {
             for (ILPEdge e : graph.getAdjacency_list_out()[graph.getSource()]){
                 total_flow.addTerm(1, e.getFlow());
             }
+            for (ILPEdge e: graph.getAdjacency_list_in()[graph.getSource()]){
+                total_flow.addTerm(-1, e.getFlow());
+            }
+
             cplex.addEq(demand, total_flow);
 
             // Constraint: Flow Doesn't Exceed Capacity (considers whether edge is open)
@@ -84,11 +89,12 @@ public class Cplex_Solver {
                 for (ILPEdge e: graph.getILPEdge_array()) {
                     if (cplex.getValue(e.getFlow()) != 0){
                         e.setNum_flow(cplex.getValue(e.getFlow()));
-                        System.out.println(e);
+                        //System.out.println(e);
                     }
                 }
                 //CSVEdgeWriter csvEdgeWriter = new CSVEdgeWriter("C:\\Users\\book_\\Documents\\Summer2019\\graphVisualizer\\edge_file_tester_solution.csv", edges);
-                System.out.println("Peak: " + cplex.getValue(cost));
+                //System.out.println("Peak: " + cplex.getValue(cost));
+                final_cost = cplex.getValue(cost);
 
             } else {
                 System.out.println("Not Feasible");
@@ -104,4 +110,6 @@ public class Cplex_Solver {
     public ILPEdge[] solvedILPEdges () {
         return graph.getILPEdge_array();
     }
+
+    public double getFinalCost () {return final_cost;}
 }
