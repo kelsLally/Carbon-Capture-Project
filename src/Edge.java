@@ -51,6 +51,12 @@ public interface Edge {
      * @return The cost to route the additional flow along the edge
      */
     public double getCost(double additional_flow);
+
+    /**
+     * @param additional_flow
+     * @return The maximum of 0 and the cost to route the additional flow along the edge
+     */
+    public double getCostNonNegative(double additional_flow);
     
     /**
      * @return True if the flow obeys capacity constraints; False o.w. 

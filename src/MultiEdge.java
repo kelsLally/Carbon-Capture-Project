@@ -127,7 +127,7 @@ public class MultiEdge implements Edge {
 
     @Override
     public boolean setFlow(double amount) {
-        if (findMinLevel(amount) == -1 || findMinLevel(amount) == -2) {
+        if (findMinLevel(amount) == -2) {
             return false;
         }
         level = findMinLevel(amount);
@@ -205,5 +205,9 @@ public class MultiEdge implements Edge {
 
     public double[] getVariable_costs() {
         return variable_costs;
+    }
+
+    public double getCostNonNegative(double additional_flow){
+        return Math.max(0, getCost(additional_flow));
     }
 }

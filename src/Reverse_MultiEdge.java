@@ -69,6 +69,10 @@ public class Reverse_MultiEdge implements Edge {
         return edge.getFixedCostToIncreaseFlow();
     }
 
+    public double getCostNonNegative(double additional_flow){
+        return Math.max(0, getCost(additional_flow));
+    }
+
     @Override
     public String toString() {
         return "Reverse_MultiEdge{" +
