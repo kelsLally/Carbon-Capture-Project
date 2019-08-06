@@ -9,36 +9,35 @@ public class GraphGenerator {
     private Node[] nodes;
     private HashSet <Line> lines;
     private MultiEdge[] multiEdgeArray;
-    //private MultiEdge[][] matrix;
 
-    private static double[] CAP = new double[]{50, 200, 500, 1000};
-    private static double[] FC = new double[]{75, 150, 300, 550};
-    private static double[] VC = new double[]{1, .8, .6, .4};
+    private static double[] CAP = new double[]{3800000, 10800000, 22600000, 65000000, 137200000, 245200000, 393800000, 702600000,1129200000};
+    private static double[] FC = new double[]{229000, 291000, 417000, 550000, 690000, 842000, 1102000, 1419000, 1823000};
+    private static double[] VC = new double[]{1, .9, .8, .7, .6, .5, .4, .3, .2};
 
-    public GraphGenerator (int node_count, double prop_source, double prop_sink) {
-        this.node_count = node_count;
-        this.prop_sources = prop_source;
-        this.prop_sinks = prop_sink;
+    public GraphGenerator (int node_count) {
+        this.node_count = node_count + 2;
+        this.prop_sources = (int)(node_count * 0.66);
+        this.prop_sinks = (int)(node_count * 0.33);
+        this.node_count += prop_sinks;
         final int X_MAX = 100;
         final int Y_MAX = 100;
 
-        nodes = generateNodeArray(node_count, X_MAX, Y_MAX);
+        nodes = generateNodeArray(this.node_count, X_MAX, Y_MAX);
 
         // generate the virtual edges between super source/ sink and sources/ sinks
-        //matrix = new MultiEdge[node_count][node_count];
         ArrayList <MultiEdge> virtualEdges = new ArrayList<>();
         for (int i = 0; i < nodes.length; i ++) {
             switch (nodes[i].getNode_type()) {
                 case SOURCE:
-                    virtualEdges.add(generateVirtualEdge(0, i));
+                    virtualEdges.add(generateSuperSourceEdge(0, i));
                     break;
                 case SINK:
-                    virtualEdges.add(generateVirtualEdge(i, nodes.length - 1));
+                    virtualEdges.add(generateSuperSinkEdge(i, nodes.length - 1));
                     break;
             }
         }
-        // another change to test commits
-        // find the distances between all nodes
+
+        // find the distance between all nodes
         double [][] distance_matrix = new double [node_count - 2][node_count - 2];
         for (int i = 1; i < node_count - 1; i ++) {
             for (int j = 1; j < node_count - 1; j ++) {
@@ -46,11 +45,11 @@ public class GraphGenerator {
             }
         }
 
+        // find the three nearest neighbors, and save them to a set
         lines = new HashSet<>();
         for (int i = 1; i < node_count - 1; i ++) {
             double ultmin = 0;
             for (int j = 0; j < 3; j ++) {
-                // go through the array 3 times, find the smallest distance that is more than 0 and not already in the set
                 double mindist = Integer.MAX_VALUE;
                 int index = -1;
                 for (int k = 0; k < distance_matrix[i - 1].length; k++){
@@ -64,15 +63,15 @@ public class GraphGenerator {
             }
         }
 
-
-
         Line[] lineArray = new Line[lines.size()];
         lines.toArray(lineArray);
 
+        // add all the real edges to an array
         multiEdgeArray = new MultiEdge[lines.size()+ virtualEdges.size()];
         for (int i = 0; i < lineArray.length; i ++) {
             multiEdgeArray[i] = generateMultiEdge(lineArray[i].getStart(), lineArray[i].getEnd(), lineArray[i].getLength());
         }
+        // add all the virtual edges to the same array
         for (int i = lineArray.length; i < multiEdgeArray.length; i ++) {
             multiEdgeArray[i] = virtualEdges.get(i - lineArray.length);
         }
@@ -115,8 +114,7 @@ public class GraphGenerator {
         nodes [0] = new Node(0, 0, NodeType.SUPER_SOURCE);
 
         for (int i = 1; i < node_count - 1; i++) {
-            nodes[i] = generateNode(x_max, y_max);
-
+            nodes[i] = generateNode(x_max, y_max, i);
         }
         // make t
         nodes [node_count - 1]  = new Node(0, 0, NodeType.SUPER_SINK);
@@ -126,22 +124,20 @@ public class GraphGenerator {
     }
 
     // creates a node with a random position and a semi random type (40% source, 40% sink, 20% pipe junction)
-    private Node generateNode (int max_x, int max_y) {
+    private Node generateNode (int max_x, int max_y, int index) {
         Random rand = new Random ();
         int x = rand.nextInt(max_x);
         int y = rand.nextInt(max_y);
-        NodeType nodeType = generateRandomNodeType();
+        NodeType nodeType = generateRandomNodeType(index);
 
         return new Node(x, y, nodeType);
     }
 
     // generates a random node type (source, sink, junction)
-    private NodeType generateRandomNodeType () {
-        Random rand = new Random();
-        double key = rand.nextDouble();
-        if (key >= 0 && key < prop_sources) {
+    private NodeType generateRandomNodeType (int index) {
+        if (index >= 0 && index < prop_sources) {
             return NodeType.SOURCE;
-        } else if (key < prop_sources + prop_sinks) {
+        } else if (index <  (prop_sources + prop_sinks)) {
             return NodeType.SINK;
         }
         return NodeType.JUNCTION;
@@ -157,7 +153,7 @@ public class GraphGenerator {
         for (int i = 0; i < CAP.length; i++){
             capacities[i] = CAP[i];
             fixed[i] = FC[i] * length * terrain_difficulty;
-            variable[i] = VC[i] * length;
+            variable[i] = VC[i];
         }
         return new MultiEdge(start, end, capacities, fixed ,variable);
     }
@@ -172,9 +168,38 @@ public class GraphGenerator {
         return new MultiEdge(start, end, capacity, fixed_cost, variable_cost);
     }
 
+    private MultiEdge generateSuperSourceEdge (int start, int end) {
+        Random rand = new Random();
+        double [] capacity = new double [] {rand.nextInt(20000000 - 100000) + 100000};
+        double [] fixed_cost = new double [] {rand.nextInt(500000000 - 200000000) + 200000000};
+        double [] variable_cost = new double [] {rand.nextInt(90 - 12) + 12};
+
+        return new MultiEdge(start, end, capacity, fixed_cost, variable_cost);
+    }
+
+    private MultiEdge generateSuperSinkEdge (int start, int end) {
+        Random rand = new Random();
+        double [] capacity = new double [] {rand.nextInt( 300000000 - 100000000) + 100000000};
+        double [] fixed_cost = new double [] {rand.nextInt( 65000000 - 20000000) + 20000000};
+        double [] variable_cost = new double [] {rand.nextInt(15 - 2) + 2};
+
+        return new MultiEdge(start, end, capacity, fixed_cost, variable_cost);
+    }
 
     // runs the distance formula to get the length of an edge
     private double getLength (double x1, double y1, double x2, double y2) {
         return Math.sqrt(Math.pow((y2 - y1), 2) + Math.pow((x2 - x1), 2));
+    }
+
+    public int getS () {
+        return 0;
+    }
+
+    public int getT () {
+        return node_count - 1;
+    }
+
+    public int getNode_count() {
+        return node_count;
     }
 }

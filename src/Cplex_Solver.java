@@ -97,7 +97,7 @@ public class Cplex_Solver {
                 final_cost = cplex.getValue(cost);
 
             } else {
-                System.out.println("Not Feasible");
+                //System.out.println("Not Feasible");
             }
             cplex.clearModel();
 

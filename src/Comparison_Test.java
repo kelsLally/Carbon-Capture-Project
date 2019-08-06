@@ -29,26 +29,28 @@ public class Comparison_Test {
             }
             FileWriter allFileWriter = new FileWriter(all_data_file);
 
-            int demand = 1000;
-            int min_node_count = 25;
-            int max_node_count = 500;
-            int skip_node_count = 25;
-            int rep_count = 20;
+            double demand;
+            int min_node_count = 100;
+            int max_node_count = 100;
+            int skip_node_count = 1;
+            int rep_count = 10;
 
             //double [][][] test_values = new double [max_node_count - min_node_count + 1][2][rep_count];
 
+
             for (int node_count = min_node_count; node_count <= max_node_count; node_count += skip_node_count ) {
                 System.out.print("\n Node Count: " + node_count);
-                for (int rep = 0; rep < rep_count; rep++) {
-                    GraphGenerator graphGenerator = new GraphGenerator(node_count, 0.4, 0.4);
+                int counter = 0;
+                while (counter < rep_count) {
+                    GraphGenerator graphGenerator = new GraphGenerator(node_count);
+                    ILPGraph ilpGraph = new ILPGraph (graphGenerator.getS(), graphGenerator.getT(), graphGenerator.getILPEdgeList(), graphGenerator.getNode_count());
+                    demand = getDemand(ilpGraph);
 
-                    ILPGraph ilpGraph = new ILPGraph(0, node_count - 1, graphGenerator.getILPEdgeList(), node_count);
                     long startTime_cplex = System.nanoTime();
                     Cplex_Solver cplex_solver = new Cplex_Solver(ilpGraph, demand);
                     long endTime_cplex = System.nanoTime();
                     double cplex_cost = cplex_solver.getFinalCost();
                     long cplex_time = endTime_cplex - startTime_cplex;
-
 
                     Flow_Network flow_network = graphGenerator.getFlowNetwork();
                     long startTime_heuristic = System.nanoTime();
@@ -79,7 +81,7 @@ public class Comparison_Test {
 
                         allFileWriter.append("\n");
 
-
+                        counter++;
                         System.out.print(".");
                     }
 //
@@ -118,5 +120,30 @@ public class Comparison_Test {
             System.out.print("File error: ");
             e.printStackTrace();
         }
+    }
+
+    public double getDemand (ILPGraph ilpGraph) {
+
+        ILPEdge [] ilpEdges = ilpGraph.getILPEdge_array();
+        int source = ilpGraph.getSource();
+        int sink = ilpGraph.getSink();
+
+        double source_capacity = 0;
+        double sink_capacity = 0;
+        for (int i = 0; i < ilpEdges.length; i++) {
+            if (ilpEdges[i].getStart() == source) {
+                source_capacity += ilpEdges[i].getCapacity();
+            } else if (ilpEdges[i].getEnd() == sink) {
+                sink_capacity += ilpEdges[i].getCapacity();
+            }
+        }
+//        System.out.println("demand diff: " + (sink_capacity - source_capacity));
+//        System.out.println("sink: " + sink_capacity);
+//        System.out.println("source: " + source_capacity);
+//        System.out.println();
+        if (source_capacity <= sink_capacity) {
+            return source_capacity;
+        }
+        return sink_capacity;
     }
 }
