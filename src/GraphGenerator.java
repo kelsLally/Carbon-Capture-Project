@@ -10,9 +10,14 @@ public class GraphGenerator {
     private HashSet <Line> lines;
     private MultiEdge[] multiEdgeArray;
 
-    private static double[] CAP = new double[]{3800000, 10800000, 22600000, 65000000, 137200000, 245200000, 393800000, 702600000,1129200000};
-    private static double[] FC = new double[]{229000, 291000, 417000, 550000, 690000, 842000, 1102000, 1419000, 1823000};
-    private static double[] VC = new double[]{1, .9, .8, .7, .6, .5, .4, .3, .2};
+//    private static double[] CAP = new double[]{3800000, 10800000, 22600000, 65000000, 137200000, 245200000, 393800000, 702600000,1129200000};
+//    private static double[] FC = new double[]{229000, 291000, 417000, 550000, 690000, 842000, 1102000, 1419000, 1823000};
+//    private static double[] VC = new double[]{1, .9, .8, .7, .6, .5, .4, .3, .2};
+
+    private static double[] CAP = new double[]{3800000, 65000000, 393800000, 702600000};
+    private static double[] FC = new double[]{229000, 550000, 1102000, 1419000};
+    private static double[] VC = new double[]{1, .7, .4, .3};
+
 
     public GraphGenerator (int node_count) {
         this.node_count = node_count + 2;
