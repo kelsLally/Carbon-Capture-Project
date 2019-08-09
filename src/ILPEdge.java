@@ -4,13 +4,15 @@
  * and open the template in the editor.
  */
 
-import ilog.concert.IloIntVar;
-import ilog.concert.IloNumVar;
+//import ilog.concert.IloIntVar;
+//import ilog.concert.IloNumVar;
 
 /**
  *
  * @author sauerberg
  */
+
+/*
 public class ILPEdge {
 
     private double capacity;
@@ -89,3 +91,4 @@ public class ILPEdge {
                 '}';
     }
 }
+ */

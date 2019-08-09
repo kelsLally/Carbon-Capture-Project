@@ -1,54 +1,95 @@
 public class CarbonCaptureProjectv4 {
-    public static void main (String[] args) {
 
-        Comparison_Test comparison_test = new Comparison_Test("C:\\Users\\book_\\Documents\\Summer2019\\MSUResearch\\average.csv", "C:\\Users\\book_\\Documents\\Summer2019\\MSUResearch\\allData.csv");
-        comparison_test.runTest();
-
-        /*int node_count = 20;
+    public static void main(String[] args) {
+        int node_count = 30;
         double proportion_of_sources = 0.4;
         double proportion_of_sinks = 0.4;
-        double demand = 2000;
+        double demand = 300;
 
-        GraphGenerator graphGenerator = new GraphGenerator(node_count, proportion_of_sources, proportion_of_sinks);
-        Cplex_Solver cplex_solver = new Cplex_Solver(new ILPGraph(0, node_count - 1, graphGenerator.getILPEdgeList(), node_count), demand);
-        CSVEdgeWriter csvEdgeWriter = new CSVEdgeWriter("C:\\Users\\book_\\Documents\\Summer2019\\graphVisualizer\\edge_file_solution_tester.csv", cplex_solver.solvedILPEdges());
+        int brendan = 0;
+        int sean = 0;
+        int nathaniel = 0;
+        int sean2 = 0;
+        int nathaniel2 = 0;
 
-        Flow_Network flow_network = graphGenerator.getFlowNetwork();
+        for (int i = 0; i < 10000; i++) {
 
-        //for (int i = 0; i < 1000000; i++) {
-            System.out.println();
-            System.out.println();
+            GraphGenerator graphGenerator = new GraphGenerator(node_count, proportion_of_sources, proportion_of_sinks);
+            //Cplex_Solver cplex_solver = new Cplex_Solver(new ILPGraph(0, node_count - 1, graphGenerator.getILPEdgeList(), node_count), demand);
+            //CSVEdgeWriter csvEdgeWriter = new CSVEdgeWriter("C:\\Users\\book_\\Documents\\Summer2019\\graphVisualizer\\edge_file_solution_tester.csv", cplex_solver.solvedILPEdges());
+
+            Flow_Network flow_network = graphGenerator.getFlowNetwork();
+
             flow_network.solveCheapestPathHeuristic(demand);
-            System.out.println("\n Solved:");
-            System.out.println(flow_network.getFlow() + " cost: " + flow_network.getCost());
-            flow_network.print_flow_edges();
+            //System.out.println("\nBrendan Heuristic:");
+            System.out.println("\nBrendan Heuristic: " + flow_network.getFlow() + " cost: " + flow_network.getCost());
+            //flow_network.print_flow_edges();
+            //System.out.println(flow_network.isValid());
+            double b = flow_network.getCost();
 
-            //graphGenerator = new GraphGenerator(node_count, proportion_of_sources, proportion_of_sinks);
-            //flow_network = graphGenerator.getFlowNetwork();
+            flow_network.clearFlow();
 
-        //}
+            flow_network.solveSeanHeuristicNonNegative(demand);
+            //System.out.println("\nSean heuristic:");
+            System.out.println("Sean heuristic: " + flow_network.getFlow() + " cost: " + flow_network.getCost());
+            //flow_network.print_flow_edges();
+            //System.out.println(flow_network.isValid());
 
+            double s = flow_network.getCost();
+            flow_network.clearFlow();
 
+            flow_network.solveNathanielHeuristicNonNegative(demand);
+            //System.out.println("\nNathaniel heuristic:");
+            System.out.println("Nathaniel heuristic: " + flow_network.getFlow() + " cost: " + flow_network.getCost());
+            //flow_network.print_flow_edges();
+            //System.out.println(flow_network.getFlow());
 
-        flow_network = graphGenerator.getFlowNetwork();
-        System.out.println(flow_network.getFlow());
+            double n = flow_network.getCost();
 
-        System.out.println();
-        System.out.println();
-        flow_network.solveNathanielHeuristic(demand);
-        System.out.println("solve Nathaniel heuristic:");
-        System.out.println(flow_network.getFlow() + " cost: " + flow_network.getCost());
-        flow_network.print_flow_edges();
+            flow_network.clearFlow();
 
+            flow_network.solveSeanHeuristicDP(demand);
+            //System.out.println("\nSean heuristic:");
+            System.out.println("Sean heuristic2: " + flow_network.getFlow() + " cost: " + flow_network.getCost());
+            //flow_network.print_flow_edges();
+            //System.out.println(flow_network.isValid());
 
-        System.out.println();
-        System.out.println();
-        flow_network.solveSeanHeuristic(demand);
-        System.out.println("solve Sean heuristic:");
-        System.out.println(flow_network.getFlow() + " cost: " + flow_network.getCost());
-        flow_network.print_flow_edges();
+            double s2 = flow_network.getCost();
+            flow_network.clearFlow();
 
-*/
+            flow_network.solveNathanielHeuristicDP(demand);
+            //System.out.println("\nNathaniel heuristic:");
+            System.out.println("Nathaniel heuristic2: " + flow_network.getFlow() + " cost: " + flow_network.getCost());
+            //flow_network.print_flow_edges();
+            //System.out.println(flow_network.getFlow());
+
+            double n2 = flow_network.getCost();
+
+            var min = Math.min(n2, Math.min(s2, Math.min(b, Math.min(s, n))));
+            if (min == b){
+                brendan++;
+            }
+            if (min == s){
+                sean++;
+            }
+            if (min == n){
+                nathaniel++;
+            }
+            if (min == s2){
+                sean2++;
+            }
+            if (min == n2){
+                nathaniel2++;
+            }
+
+        }
+
+        System.out.println("Brendan: " + brendan);
+        System.out.println("Sean: " + sean);
+        System.out.println("Nathaniel: " + nathaniel);
+        System.out.println("Sean2: " + sean2);
+        System.out.println("Nathaniel2: " + nathaniel2);
+
 
     }
 }

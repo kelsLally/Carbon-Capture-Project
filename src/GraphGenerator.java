@@ -86,6 +86,7 @@ public class GraphGenerator {
         return new Flow_Network(node_count, copy);
     }
 
+    /*
     public ILPEdge[] getILPEdgeList() {
 
         ArrayList<ILPEdge> arrayListEdges = new ArrayList<>();
@@ -107,6 +108,7 @@ public class GraphGenerator {
         CSVEdgeWriter csvEdgeWriter = new CSVEdgeWriter("C:\\Users\\book_\\Documents\\Summer2019\\MSUResearch\\graphVisualizer2_0\\edge_file_tester.csv", edges);
         return edges;
     }
+     */
 
     // creates an array of nodes including a super source and super sink
     private Node[] generateNodeArray (int node_count, int x_max, int y_max) {
@@ -165,9 +167,9 @@ public class GraphGenerator {
     // generates a virtual multi-edge representing the costs associated with a facility
     private MultiEdge generateVirtualEdge (int start, int end) {
         Random rand = new Random();
-        double [] capacity = new double [] {rand.nextInt( 2000 - 500)+ 500};
-        double [] fixed_cost = new double [] {rand.nextInt(1500 - 500) + 500};
-        double [] variable_cost = new double [] {rand.nextInt(50 - 10) + 10};
+        double [] capacity = new double [] {rand.nextInt( 200 - 50)+ 50};
+        double [] fixed_cost = new double [] {rand.nextInt(150 - 50) + 50};
+        double [] variable_cost = new double [] {rand.nextInt(5 - 1) + 1};
 
         return new MultiEdge(start, end, capacity, fixed_cost, variable_cost);
     }

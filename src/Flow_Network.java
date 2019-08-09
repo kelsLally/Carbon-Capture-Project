@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,7 +76,7 @@ public class Flow_Network {
      * @return A tuple containing the path that was found, its cost, and its
      * maximum possible flow
      */
-    public PathCostFlow findCheapestPath() {
+    public PathCostFlow findCheapestPathDP() {
         double[] cost = new double[n];
         int[] pred = new int[n];
         for (int i = 0; i < n; i++) {
@@ -157,22 +156,29 @@ public class Flow_Network {
      * @return A tuple containing the path that was found, its cost, and its
      * maximum possible flow
      */
-    public PathCostFlow findCheapestPath(double amount) {
-        double[] cost = new double[n];
-        int[] pred = new int[n];
+    public PathCostFlow findCheapestPathDP(double amount) {
+        double[][] cost = new double[n][];
+        int[][] pred = new int[n][];
         for (int i = 0; i < n; i++) {
-            cost[i] = Double.MAX_VALUE;
-            pred[i] = -1;
+            cost[i] = new double[n];
+            pred[i] = new int[n];
+            for (int j = 0; j < n; j++) {
+                cost[i][j] = Double.MAX_VALUE;
+                pred[i][j] = -1;
+            }
         }
-        cost[0] = 0;
+        cost[0][0] = 0;
 
         // repeatedly relax # edges allowed
-        for (int i = 0; i < n - 1; i++) {
-            for (Edge[] row : matrix) {
-                for (Edge e : row) {
-                    if (e != null && cost[e.getEnd()] > cost[e.getStart()] + e.getCost(amount)) {
-                        cost[e.getEnd()] = cost[e.getStart()] + e.getCost(amount);
-                        pred[e.getEnd()] = e.getStart();
+        for (int edges = 0; edges < n; edges++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    Edge e = matrix[i][j];
+                    if (e != null
+                            && !getPreds(edges, e.getEnd(), pred).contains(e.getStart())
+                            && cost[edges][e.getEnd()] > cost[edges-1][e.getStart()] + e.getCost(amount)) {
+                        cost[edges][e.getEnd()] = cost[edges-1][e.getStart()] + e.getCost(amount);
+                        pred[edges][e.getEnd()] = e.getStart();
                     }
                 }
             }
@@ -181,33 +187,17 @@ public class Flow_Network {
         // check for negative cycles
         for (Edge[] row : matrix) {
             for (Edge e : row) {
-                if (e != null && cost[e.getEnd()] > cost[e.getStart()] + e.getCost(amount)) {
-                    List<Integer> cycle = new ArrayList<>();
-                    cycle.add(e.getEnd());
-                    cycle.add(e.getStart());
-                    while (!cycle.contains(pred[cycle.get(cycle.size()-1)])){
-                        cycle.add(pred[cycle.get(cycle.size() -1)]);
-                    }
-                    cycle = cycle.subList(cycle.indexOf(pred[cycle.get(cycle.size()-1)]), cycle.size());
-                    Collections.reverse(cycle);
-                    System.out.println(cycle);
-
-                    ArrayList<Double> costs = new ArrayList<>();
-                    for (int i = 0; i < cycle.size()-1; i++){
-                        costs.add(matrix[cycle.get(i)][cycle.get(i+1)].getCost(amount));
-                    }
-                    costs.add(matrix[cycle.get(cycle.size()-1)][cycle.get(0)].getCost(amount));
-                    System.out.println(costs);
-
-
-                    // todo: if the graph really has a negative cycle
-                    // we should return it instead of throwing an exception
+                if (e != null
+                        && !getPreds(n-1, e.getEnd(), pred).contains(e.getStart())
+                        && cost[n-1][e.getEnd()] > cost[n-1][e.getStart()] + e.getCost(amount)) {
+                    // todo: if the graph really has a negative cycle we should return it
+                    // return null; // better than crashing during a long test
                     throw new IllegalArgumentException("The graph contains negative cycles.");
                 }
             }
         }
 
-        if (pred[n - 1] == -1) {
+        if (pred[n-1][n - 1] == -1) {
             return null;
         }
 
@@ -215,11 +205,11 @@ public class Flow_Network {
         double total_cost = 0;
         ArrayList<Integer> path = new ArrayList<Integer>();
         path.add(n - 1);
-        while (path.get(path.size() - 1) != 0) {
-            if (pred[path.get(path.size() - 1)] == -1) {
+        for (int edges = n-1; edges >= 0; edges--) {
+            if (pred[edges][path.get(path.size() - 1)] == -1) {
                 throw new IllegalArgumentException("Error in Bellman Ford");
             }
-            Edge e = matrix[pred[path.get(path.size() - 1)]][path.get(path.size() - 1)];
+            Edge e = matrix[pred[edges][path.get(path.size() - 1)]][path.get(path.size() - 1)];
             if (e.getCost(amount) == Double.MAX_VALUE) {
                 return null; // no path exists
             }
@@ -227,6 +217,9 @@ public class Flow_Network {
             path.add(e.getStart());
         }
         Collections.reverse(path);
+        if (path.get(0) != 0) {
+            throw new IllegalArgumentException("Error in Bellman Ford");
+        }
 
         return new PathCostFlow(path, total_cost, amount);
     }
@@ -322,7 +315,7 @@ public class Flow_Network {
      */
     public boolean solveCheapestPathHeuristic(double demand) {
         while (demand - getFlow() > 0) {
-            PathCostFlow cheapest = findCheapestPath();
+            PathCostFlow cheapest = findCheapestPathDP();
             if (cheapest == null) {
                 return false; // max flow of network is less than demand
             }
@@ -341,13 +334,14 @@ public class Flow_Network {
      * Greedily solves the Min-Cost Flow problem by repeatedly considering all
      * paths that fully saturate a source or sink and the single cheapest path
      * to open, and then fully saturating the most cost effective of these
+     * Avoids potential negative cycles by disallowing negative edge costs
      *
      * @param demand the required amount of s-t flow
      * @return false if the graph's max flow is less than demand, true o.w
      */
     public boolean solveNathanielHeuristicNonNegative(double demand) {
         while (demand - getFlow() > 0) {
-            PathCostFlow cheapest = findCheapestPath();
+            PathCostFlow cheapest = findCheapestPathDP();
             for (int i = 1; i < n-1; i++) {
                 if (matrix[0][i] != null && matrix[0][i].getResidualCapacity(0) != 0) {
                     PathCostFlow current = findCheapestPathNonNegativeCosts(
@@ -377,6 +371,7 @@ public class Flow_Network {
      * Greedily solves the Min-Cost Flow problem by repeatedly considering all
      * paths that fully saturate a source or sink and augmenting along the path
      * that is cheapest per unit flow
+     * * Avoids potential negative cycles by disallowing negative edge costs
      *
      * @param demand the required amount of s-t flow
      * @return false if the graph's max flow is less than demand, true o.w
@@ -396,6 +391,81 @@ public class Flow_Network {
                 // consider the cheapest path saturating sink i
                 if (matrix[i][n - 1] != null && matrix[i][n - 1].getResidualCapacity(0) != 0) {
                     PathCostFlow current = findCheapestPathNonNegativeCosts(
+                            Math.min(demand - getFlow(), matrix[i][n - 1].getResidualCapacity(0)));
+                    if (current != null && (current.getFlowOverCost() > cheapest.getFlowOverCost())) {
+                        cheapest = current;
+                    }
+                }
+            }
+            if (cheapest == null || cheapest.getFlow() == 0) {
+                return false; // already at max flow
+            }
+            augmentAlongPath(cheapest.getPath(), cheapest.getFlow());
+        }
+        return true;
+    }
+
+    /**
+     * Greedily solves the Min-Cost Flow problem by repeatedly considering all
+     * paths that fully saturate a source or sink and the single cheapest path
+     * to open, and then fully saturating the most cost effective of these
+     * *Avoids potential negative cycles by never revisiting nodes in the predecessor chain
+     *
+     * @param demand the required amount of s-t flow
+     * @return false if the graph's max flow is less than demand, true o.w
+     */
+    public boolean solveNathanielHeuristicDP(double demand) {
+        while (demand - getFlow() > 0) {
+            PathCostFlow cheapest = findCheapestPathDP();
+            for (int i = 1; i < n-1; i++) {
+                if (matrix[0][i] != null && matrix[0][i].getResidualCapacity(0) != 0) {
+                    PathCostFlow current = findCheapestPathDP(
+                            Math.min(demand - getFlow(), matrix[0][i].getResidualCapacity(0)));
+                    if (current != null && (current.getFlowOverCost() > cheapest.getFlowOverCost())) {
+                        cheapest = current;
+                    }
+                }
+                // consider the cheapest path saturating sink i
+                if (matrix[i][n - 1] != null && matrix[i][n - 1].getResidualCapacity(0) != 0) {
+                    PathCostFlow current = findCheapestPathDP(
+                            Math.min(demand - getFlow(), matrix[i][n - 1].getResidualCapacity(0)));
+                    if (current != null && (current.getFlowOverCost() > cheapest.getFlowOverCost())) {
+                        cheapest = current;
+                    }
+                }
+            }
+            if (cheapest == null || cheapest.getFlow() == 0) {
+                return false; // already at max flow
+            }
+            augmentAlongPath(cheapest.getPath(), Math.min(cheapest.getFlow(), demand - getFlow()));
+        }
+        return true;
+    }
+
+    /**
+     * Greedily solves the Min-Cost Flow problem by repeatedly considering all
+     * paths that fully saturate a source or sink and augmenting along the path
+     * that is cheapest per unit flow
+     * *Avoids potential negative cycles by never revisiting nodes in the predecessor chain
+     *
+     * @param demand the required amount of s-t flow
+     * @return false if the graph's max flow is less than demand, true o.w
+     */
+    public boolean solveSeanHeuristicDP(double demand) {
+        while (demand - getFlow() > 0) {
+            PathCostFlow cheapest = new PathCostFlow(new ArrayList<Integer>(), Double.MAX_VALUE, 0);
+            for (int i = 1; i < n - 1; i++) {
+                // consider the cheapest path saturating source i
+                if (matrix[0][i] != null && matrix[0][i].getResidualCapacity(0) != 0) {
+                    PathCostFlow current = findCheapestPathDP(
+                            Math.min(demand - getFlow(), matrix[0][i].getResidualCapacity(0)));
+                    if (current != null && (current.getFlowOverCost() > cheapest.getFlowOverCost())) {
+                        cheapest = current;
+                    }
+                }
+                // consider the cheapest path saturating sink i
+                if (matrix[i][n - 1] != null && matrix[i][n - 1].getResidualCapacity(0) != 0) {
+                    PathCostFlow current = findCheapestPathDP(
                             Math.min(demand - getFlow(), matrix[i][n - 1].getResidualCapacity(0)));
                     if (current != null && (current.getFlowOverCost() > cheapest.getFlowOverCost())) {
                         cheapest = current;
@@ -484,6 +554,20 @@ public class Flow_Network {
                 }
             }
         }
+    }
+
+    private ArrayList<Integer> getPreds(int edges, int node, int[][] pred){
+        ArrayList<Integer> path = new ArrayList<>();
+        path.add(pred[edges][node]);
+        edges--;
+        while (path.get(path.size() - 1) != 0) {
+            if (pred[path.get(path.size() - 1)][edges] == -1) {
+                throw new IllegalArgumentException("Error in Bellman Ford");
+            }
+            path.add(pred[path.get(path.size() - 1)][edges]);
+            edges--;
+        }
+        return path;
     }
 
 }

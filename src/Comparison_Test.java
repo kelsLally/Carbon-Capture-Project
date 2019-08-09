@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.FileWriter;
 
+/*
+
 public class Comparison_Test {
     private String average_file_name;
     private String all_data_file_name;
@@ -120,3 +122,6 @@ public class Comparison_Test {
         }
     }
 }
+
+
+ */
